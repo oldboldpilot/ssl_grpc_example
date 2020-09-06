@@ -5,6 +5,7 @@ import grpc
 
 import service_pb2
 import service_pb2_grpc
+import signal
 
 
 class ServerServicer(service_pb2_grpc.ServerServicer):
@@ -15,13 +16,13 @@ class ServerServicer(service_pb2_grpc.ServerServicer):
 def main():
     port = '1337'
 
-    with open('server.key', 'rb') as f:
+    with open('key.pem', 'rb') as f:
         private_key = f.read()
-    with open('server.crt', 'rb') as f:
+    with open('cert.pem', 'rb') as f:
         certificate_chain = f.read()
 
     server_credentials = grpc.ssl_server_credentials(
-      ((private_key, certificate_chain,),))
+        ((private_key, certificate_chain), ))
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=1))
     service_pb2_grpc.add_ServerServicer_to_server(ServerServicer(), server)
@@ -29,12 +30,7 @@ def main():
     server.add_secure_port('[::]:'+port, server_credentials)
 
     server.start()
-    try:
-        while True:
-            signal.pause()
-    except KeyboardInterrupt:
-        pass
-    server.stop(0)
+    server.wait_for_termination()
 
 if __name__ == '__main__':
     main()

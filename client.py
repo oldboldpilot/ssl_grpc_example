@@ -8,7 +8,7 @@ def main():
     host = 'localhost'
     port = 1337
 
-    with open('server.crt', 'rb') as f:
+    with open('rootCA.pem', 'rb') as f:
         trusted_certs = f.read()
 
     credentials = grpc.ssl_channel_credentials(root_certificates=trusted_certs)
